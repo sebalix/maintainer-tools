@@ -230,6 +230,25 @@ class PullRequest(abc.Hashable):
     def paths_not_ported(self):
         return list(self.paths - self.ported_paths)
 
+    def to_string(self, commits, bc, verbose=False):
+        lines_to_print = [""]
+        if self.number:
+            lines_to_print.append(
+                f"{bc.BOLD}{bc.OKCYAN}PR #{self.number}{bc.END} "
+                f"({self.url}) {bc.OKCYAN}{self.title}{bc.ENDC}"
+            )
+        else:
+            lines_to_print.append(
+                f"{bc.BOLD}{bc.OKCYAN}Commits w/o PR{bc.END}"
+            )
+        if verbose or not self.number:
+            for commit in commits:
+                lines_to_print.append(
+                    f"\t\t{bc.DIM}{commit.hexsha[:8]} "
+                    f"{commit.summary}{bc.ENDD}"
+                )
+        return "\n".join(lines_to_print)
+
 
 class InputStorage():
     """Store the user inputs related to an addon.

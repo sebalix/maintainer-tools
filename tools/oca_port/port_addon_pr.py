@@ -146,13 +146,7 @@ class PortAddonPullRequest():
             self, pr, commits, base_ref, previous_pr=None, previous_pr_branch=None,
             ):
         """Port commits of a Pull Request in a new branch."""
-        if pr.number:
-            print(
-                f"- {bc.BOLD}{bc.OKCYAN}Port PR #{pr.number}{bc.END} "
-                f"({pr.url}) {bc.OKCYAN}{pr.title}{bc.ENDC}..."
-            )
-        else:
-            print(f"- {bc.BOLD}{bc.OKCYAN}Port commits w/o PR{bc.END}...")
+        print(pr.to_string(commits, bc, self.verbose))
         based_on_previous = False
         # Ensure to not start to work from a working branch
         if self.to_branch.name in self.repo.heads:
