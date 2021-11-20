@@ -332,19 +332,22 @@ def clean_text(text):
     return re.sub(r"\[.*\]|\d+\.\d+", "", text).strip()
 
 
+def _full_url(url):
+    return "/".join([GITHUB_API_URL, url])
+
+
 def _request_github(url, method="get", params=None, json=None):
     """Request GitHub API."""
     headers = {"Accept": "application/vnd.github.groot-preview+json"}
     if os.environ.get("GITHUB_TOKEN"):
         token = os.environ.get("GITHUB_TOKEN")
         headers.update({"Authorization": f"token {token}"})
-    full_url = "/".join([GITHUB_API_URL, url])
     kwargs = {"headers": headers}
     if json:
         kwargs.update(json=json)
     if params:
         kwargs.update(params=params)
-    response = getattr(requests, method)(full_url, **kwargs)
+    response = getattr(requests, method)(_full_url(url), **kwargs)
     if not response.ok:
         raise RuntimeError(response.text)
     return response.json()
