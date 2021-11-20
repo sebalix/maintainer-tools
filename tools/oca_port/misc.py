@@ -230,6 +230,25 @@ class PullRequest(abc.Hashable):
     def paths_not_ported(self):
         return list(self.paths - self.ported_paths)
 
+    def to_string(self, commits, bc, verbose=False):
+        lines_to_print = [""]
+        if self.number:
+            lines_to_print.append(
+                f"{bc.BOLD}{bc.OKCYAN}PR #{self.number}{bc.END} "
+                f"({self.url}) {bc.OKCYAN}{self.title}{bc.ENDC}"
+            )
+        else:
+            lines_to_print.append(
+                f"{bc.BOLD}{bc.OKCYAN}Commits w/o PR{bc.END}"
+            )
+        if verbose or not self.number:
+            for commit in commits:
+                lines_to_print.append(
+                    f"\t\t{bc.DIM}{commit.hexsha[:8]} "
+                    f"{commit.summary}{bc.ENDD}"
+                )
+        return "\n".join(lines_to_print)
+
 
 class InputStorage():
     """Store the user inputs related to an addon.
@@ -313,19 +332,22 @@ def clean_text(text):
     return re.sub(r"\[.*\]|\d+\.\d+", "", text).strip()
 
 
+def _full_url(url):
+    return "/".join([GITHUB_API_URL, url])
+
+
 def _request_github(url, method="get", params=None, json=None):
     """Request GitHub API."""
     headers = {"Accept": "application/vnd.github.groot-preview+json"}
     if os.environ.get("GITHUB_TOKEN"):
         token = os.environ.get("GITHUB_TOKEN")
         headers.update({"Authorization": f"token {token}"})
-    full_url = "/".join([GITHUB_API_URL, url])
     kwargs = {"headers": headers}
     if json:
         kwargs.update(json=json)
     if params:
         kwargs.update(params=params)
-    response = getattr(requests, method)(full_url, **kwargs)
+    response = getattr(requests, method)(_full_url(url), **kwargs)
     if not response.ok:
         raise RuntimeError(response.text)
     return response.json()
